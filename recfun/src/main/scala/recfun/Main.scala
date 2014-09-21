@@ -34,8 +34,7 @@ object Main {
       } else countParentheses(score, chars.tail)
     }
 
-    if (countParentheses(0, chars) == 0) true
-    else false
+    countParentheses(0, chars) == 0
   }
 
   /**
@@ -50,10 +49,10 @@ object Main {
         countChange(money - coin * count, coins) + countChange2(money, coin, count - 1, coins)
     }
 
-    var newcoins = coins.sorted
+    def newcoins = coins.sorted
     if (newcoins.isEmpty) 0
     else {
-      var coin = newcoins.head
+      def coin = newcoins.head
       if (money < coin) 0
       else if (money == coin) 1
       else {
