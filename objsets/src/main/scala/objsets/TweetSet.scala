@@ -2,6 +2,7 @@ package objsets
 
 import common._
 import TweetReader._
+import java.util.NoSuchElementException
 
 /**
  * A class to represent tweets.
@@ -109,10 +110,17 @@ abstract class TweetSet {
 }
 
 class Empty extends TweetSet {
+  
+  override def filter(p: Tweet => Boolean): TweetSet = filterAcc(p, new Empty)
 
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = ???
-
-
+  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = acc
+  
+  override def union(that: TweetSet): TweetSet = that
+  
+  override def mostRetweeted: Tweet = throw new NoSuchElementException("empty set")
+  
+  override def descendingByRetweet: TweetList = Nil
+  
   /**
    * The following methods are already implemented
    */
@@ -127,10 +135,54 @@ class Empty extends TweetSet {
 }
 
 class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
+  
+  override def filter(p: Tweet => Boolean): TweetSet = {
+    if (p(elem))
+      new NonEmpty(elem, left.filter(p), right.filter(p))
+    else left.filter(p).union(right.filter(p)) 
+  }
 
-  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = ???
+  def filterAcc(p: Tweet => Boolean, acc: TweetSet): TweetSet = 
+    if (p(elem))
+      acc.incl(elem)
+    else acc
 
-
+  override def union(that: TweetSet): TweetSet = {
+      def f(p: Tweet): Boolean = {
+        p.text < elem.text
+      }
+      def f2(p: Tweet): Boolean = p.text > elem.text
+      new NonEmpty(elem, left.union(that.filter(f)), right.union(that.filter(f2)))
+    }
+  
+  override def mostRetweeted: Tweet = {
+    var maxTweet: Tweet = elem
+    try {
+      def leftMaxTweet: Tweet = left.mostRetweeted
+      if (leftMaxTweet.retweets > maxTweet.retweets)
+        maxTweet = leftMaxTweet
+    } catch {
+      case e: NoSuchElementException =>{}
+    }
+    try {
+      def rightMaxTweet: Tweet = right.mostRetweeted
+      if (rightMaxTweet.retweets > maxTweet.retweets)
+        maxTweet = rightMaxTweet
+    } catch {
+      case e: NoSuchElementException =>{}
+    }
+    maxTweet
+  }
+  
+  override def descendingByRetweet: TweetList = {
+    try {
+      def maxTweet = this.mostRetweeted
+      new Cons(maxTweet, this.remove(maxTweet).descendingByRetweet)
+    } catch {
+      case e: NoSuchElementException => {Nil}
+    }
+    
+  }
   /**
    * The following methods are already implemented
    */
@@ -184,14 +236,18 @@ object GoogleVsApple {
   val google = List("android", "Android", "galaxy", "Galaxy", "nexus", "Nexus")
   val apple = List("ios", "iOS", "iphone", "iPhone", "ipad", "iPad")
 
-  lazy val googleTweets: TweetSet = ???
-  lazy val appleTweets: TweetSet = ???
+  lazy val googleTweets: TweetSet = {
+    TweetReader.allTweets.filter(tw => google.exists(str => tw.text.contains(str)))
+  }
+  lazy val appleTweets: TweetSet = TweetReader.allTweets.filter(tw => apple.exists(str => tw.text.contains(str)))
 
   /**
    * A list of all tweets mentioning a keyword from either apple or google,
    * sorted by the number of retweets.
    */
-  lazy val trending: TweetList = ???
+  lazy val trending: TweetList = {
+    TweetReader.allTweets.filter(tw => (apple ::: google).exists(str => tw.text.contains(str))).descendingByRetweet
+  }
 }
 
 object Main extends App {
