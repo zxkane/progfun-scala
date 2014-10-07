@@ -158,14 +158,14 @@ class NonEmpty(elem: Tweet, left: TweetSet, right: TweetSet) extends TweetSet {
   override def mostRetweeted: Tweet = {
     var maxTweet: Tweet = elem
     try {
-      def leftMaxTweet: Tweet = left.mostRetweeted
+      val leftMaxTweet: Tweet = left.mostRetweeted
       if (leftMaxTweet.retweets > maxTweet.retweets)
         maxTweet = leftMaxTweet
     } catch {
       case e: NoSuchElementException =>{}
     }
     try {
-      def rightMaxTweet: Tweet = right.mostRetweeted
+      val rightMaxTweet: Tweet = right.mostRetweeted
       if (rightMaxTweet.retweets > maxTweet.retweets)
         maxTweet = rightMaxTweet
     } catch {
