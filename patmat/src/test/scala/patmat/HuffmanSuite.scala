@@ -44,4 +44,32 @@ class HuffmanSuite extends FunSuite {
       assert(decode(t1, encode(t1)("ab".toList)) === "ab".toList)
     }
   }
+  
+  test("times of some word") {
+    new TestTrees {
+      assert(times(List('a', 'a', 'a', 'a', 'a', 'b', 'b', 'b', 'b', 'r', 'r', 'r', 'k', 'k', 'd')) === List(('a',5), ('b',4), ('r',3), ('k',2), ('d',1)))
+    }
+  }
+  
+  test("createCodeTree(someText)") {
+    new TestTrees {
+      createCodeTree("someText".toList) match {
+        case Fork(left, right, chars, weight) => println(weight)
+      }
+    }
+  }
+  
+  test("quick encode gives the correct byte sequence") {
+    new TestTrees {
+      assert(quickEncode(t1)("ab".toList) === encode(t1)("ab".toList))
+      assert(quickEncode(t2)("abd".toList) === encode(t2)("abd".toList))
+    }
+  }  
+  
+    test("decode and quick encode is identity") {
+    new TestTrees {
+      assert(decode(t1, quickEncode(t1)("ab".toList)) === "ab".toList)
+      assert(decode(t2, quickEncode(t2)("abd".toList)) === "abd".toList)
+    }
+  }
 }
